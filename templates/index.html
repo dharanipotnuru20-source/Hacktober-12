@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Job Board AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        header {
+            background: #155e75;
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+        main {
+            max-width: 800px;
+            margin: 25px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000012;
+        }
+        input, button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            margin: 7px 0;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 16px;
+        }
+        button {
+            background: #0e7490;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background: #155e75; }
+        .job {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 0;
+        }
+        .voice-row {
+            display: flex;
+            gap: 8px;
+        }
+        .voice-row input { flex: 1; min-width: 0; }
+        .voice-row button { width: auto; }
+        small { color: #64748b; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🎤 Voice Job Board AI</h1>
+    <p>Find local jobs using your voice</p>
+</header>
+
+<main>
+    <section class="card">
+        <h2>Find a Job</h2>
+        <form action="/search" method="get">
+            <div class="voice-row">
+                <input id="query" name="q"
+                       placeholder="Example: electrician jobs in Hyderabad">
+                <button type="button" onclick="startVoice()">🎙️ Speak</button>
+            </div>
+            <button type="submit">Search Jobs</button>
+        </form>
+        <small id="voiceStatus">
+            You can type your search or try voice input.
+        </small>
+    </section>
+
+    <section class="card">
+        <h2>Available Jobs</h2>
+        {% if jobs %}
+            {% for job in jobs %}
+            <div class="job">
+                <h3>{{ job["title"] }}</h3>
+                <p>📍 {{ job["location"] }}</p>
+                <p>{{ job["description"] }}</p>
+                <p>💰 {{ job["salary"] }}</p>
+                <small>Employer: {{ job["employer"] }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No matching jobs found. Try another search.</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Post a Job</h2>
+        <form action="/post" method="post">
+            <input name="title" placeholder="Job title" required>
+            <input name="location" placeholder="Job location" required>
+            <input name="salary" placeholder="Salary or daily wage" required>
+            <input name="employer" placeholder="Employer name" required>
+            <input name="description" placeholder="Job description" required>
+            <button type="submit">Post Job</button>
+        </form>
+    </section>
+</main>
+
+<script>
+function startVoice() {
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        document.getElementById("voiceStatus").textContent =
+            "Voice input is not supported in this browser. Please type instead.";
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "te-IN";
+    recognition.interimResults = false;
+
+    document.getElementById("voiceStatus").textContent =
+        "Listening... Please speak now.";
+
+    recognition.onresult = function(event) {
+        document.getElementById("query").value =
+            event.results[0][0].transcript;
+        document.getElementById("voiceStatus").textContent =
+            "Voice captured! Click Search Jobs.";
+    };
+
+    recognition.onerror = function() {
+        document.getElementById("voiceStatus").textContent =
+            "Could not capture speech. Check microphone permission or type instead.";
+    };
+
+    recognition.start();
+}
+</script>
+</body>
+</html>
